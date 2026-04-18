@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>介面權限對照表</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0c0c0c;
+  --bg2: #141414;
+  --bg3: #1a1a1a;
+  --border: #242424;
+  --border2: #1a1a1a;
+  --text: #dedede;
+  --muted: #505050;
+  --dim: #303030;
+  --green: #3ec97a;
+  --green-bg: #071a0f;
+  --green-bd: #0f2e1c;
+  --red: #e86050;
+  --red-bg: #180906;
+  --red-bd: #2e1008;
+  --yellow: #d4a843;
+  --yellow-bg: #181004;
+  --yellow-bd: #2e2008;
+  --blue: #4da8f0;
+  --blue-bg: #060f1c;
+  --blue-bd: #0e2040;
+  --chat-accent: #3ec97a;
+  --creator-accent: #4da8f0;
+}
+body { background:var(--bg); color:var(--text); font-family:'SF Mono','Fira Code','Cascadia Code',monospace; font-size:13px; line-height:1.6; min-height:100vh; }
+
+/* ── header ── */
+.header { padding:1.5rem 1.75rem 1rem; border-bottom:1px solid var(--border); }
+.header h1 { font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); margin-bottom:.3rem; }
+.header p { font-size:11px; color:var(--muted); }
+
+/* ── interface switcher ── */
+.if-bar { display:flex; gap:0; border-bottom:1px solid var(--border); }
+.if-tab { flex:1; padding:.75rem 1rem; border:none; background:transparent; color:var(--muted); font-family:inherit; font-size:12px; cursor:pointer; letter-spacing:.04em; border-bottom:2px solid transparent; transition:all .15s; display:flex; align-items:center; justify-content:center; gap:.5rem; }
+.if-tab .badge { font-size:9px; padding:1px 6px; border-radius:3px; letter-spacing:.03em; }
+.if-tab.chat .badge { background:#071a0f; color:var(--green); border:1px solid var(--green-bd); }
+.if-tab.creator .badge { background:#060f1c; color:var(--blue); border:1px solid var(--blue-bd); }
+.if-tab.chat.active { color:var(--green); border-bottom-color:var(--green); background:#060e09; }
+.if-tab.creator.active { color:var(--blue); border-bottom-color:var(--blue); background:#060a12; }
+.if-tab:not(.active):hover { color:var(--text); background:var(--bg2); }
+
+/* ── info bar ── */
+.info-bar { padding:.6rem 1.75rem; font-size:11px; color:var(--muted); border-bottom:1px solid var(--border2); display:flex; gap:1.5rem; flex-wrap:wrap; }
+.info-bar span { display:flex; align-items:center; gap:.35rem; }
+.info-dot { width:6px; height:6px; border-radius:50%; }
+.info-dot.g { background:var(--green); }
+.info-dot.r { background:var(--red); }
+.info-dot.y { background:var(--yellow); }
+.info-dot.b { background:var(--blue); }
+
+/* ── content tab bar ── */
+.content-tabs { display:flex; gap:4px; padding:.75rem 1.75rem .5rem; border-bottom:1px solid var(--border2); }
+.ct { padding:4px 14px; border-radius:4px; border:none; background:transparent; color:var(--muted); font-family:inherit; font-size:11px; cursor:pointer; transition:all .15s; letter-spacing:.03em; }
+.ct:hover { color:var(--text); }
+.ct.active { background:var(--bg3); color:var(--text); border:1px solid var(--border); }
+
+/* ── main ── */
+.main { padding:1rem 1.75rem 2rem; }
+.search-row { display:flex; gap:.5rem; margin-bottom:1rem; align-items:center; flex-wrap:wrap; }
+input[type=search] { flex:1; min-width:180px; background:#0e0e0e; border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:inherit; font-size:12px; padding:5px 10px; outline:none; }
+input[type=search]:focus { border-color:#333; }
+input[type=search]::placeholder { color:var(--dim); }
+.filter-tabs { display:flex; gap:3px; background:var(--bg2); border:1px solid var(--border); border-radius:5px; padding:3px; }
+.ft { padding:3px 11px; border-radius:3px; border:none; background:transparent; color:var(--muted); font-family:inherit; font-size:11px; cursor:pointer; transition:all .15s; }
+.ft:hover { color:var(--text); }
+.ft.active { background:var(--bg3); color:var(--text); }
+
+/* ── stats ── */
+.stats { display:flex; gap:.6rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+.stat { background:var(--bg2); border:1px solid var(--border); border-radius:5px; padding:.35rem .85rem; display:flex; align-items:center; gap:.5rem; }
+.stat-n { font-size:14px; font-weight:600; }
+.stat-l { font-size:10px; color:var(--muted); }
+.stat-n.t { color:var(--text); }
+.stat-n.g { color:var(--green); }
+.stat-n.r { color:var(--red); }
+.stat-n.y { color:var(--yellow); }
+
+/* ── sections ── */
+.section { margin-bottom:1.4rem; }
+.section-title { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:.5rem; padding-bottom:.3rem; border-bottom:1px solid var(--border2); }
+.tag-grid { display:flex; flex-wrap:wrap; gap:5px; }
+.tag { font-size:11px; padding:2px 9px; border-radius:4px; font-family:inherit; }
+.tag.g  { background:var(--green-bg);  color:var(--green);  border:1px solid var(--green-bd);  }
+.tag.r  { background:var(--red-bg);    color:var(--red);    border:1px solid var(--red-bd);    }
+.tag.y  { background:var(--yellow-bg); color:var(--yellow); border:1px solid var(--yellow-bd); }
+.tag.b  { background:var(--blue-bg);   color:var(--blue);   border:1px solid var(--blue-bd);   }
+/* tag with allowed attrs tooltip */
+.tag.has-attrs { cursor:default; position:relative; }
+.tag.has-attrs::after { content:attr(data-attrs); position:absolute; left:0; top:calc(100% + 4px); background:#1e1e1e; border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:10px; color:var(--muted); white-space:nowrap; z-index:10; display:none; pointer-events:none; max-width:300px; white-space:normal; line-height:1.5; }
+.tag.has-attrs:hover::after { display:block; }
+
+#no-result { color:var(--dim); font-size:12px; padding:1rem 0; display:none; }
+
+/* ── note box ── */
+.note { font-size:11px; color:var(--muted); margin-bottom:1rem; padding:.5rem .75rem; border-left:2px solid var(--border); line-height:1.8; }
+
+/* ── CSS note about attr values ── */
+.css-attr-note { font-size:10px; color:var(--dim); padding:.2rem 0 .8rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>介面權限對照表</h1>
+  <p>聊天室 (DOMPurify · 模組 82931)　vs　角色/創作者主頁 (jsxss + FilterCSS · 模組 59528/12639/77153)</p>
+</div>
+
+<div class="if-bar">
+  <button class="if-tab chat active" onclick="setIface('chat',this)">
+    💬 聊天室介面
+    <span class="badge">DOMPurify</span>
+  </button>
+  <button class="if-tab creator" onclick="setIface('creator',this)">
+    🎨 角色 / 創作者主頁
+    <span class="badge">jsxss + FilterCSS</span>
+  </button>
+</div>
+
+<div class="info-bar" id="info-bar">
+  <span><span class="info-dot g"></span>允許（白名單）</span>
+  <span><span class="info-dot r"></span>禁止（黑名單）</span>
+  <span id="yellow-legend" style="display:none"><span class="info-dot y"></span>允許，但值受限</span>
+  <span id="blue-legend" style="display:none"><span class="info-dot b"></span>svgFilters 額外允許</span>
+  <span id="attr-legend" style="display:none">　・　標籤可 hover 查看允許的屬性</span>
+</div>
+
+<div class="content-tabs">
+  <button class="ct active" onclick="setContent('css',this)">CSS 屬性</button>
+  <button class="ct" onclick="setContent('html',this)">HTML 標籤</button>
+  <button class="ct" onclick="setContent('svg',this)">SVG / HTML 屬性</button>
+  <button class="ct" onclick="setContent('math',this)">MathML</button>
+</div>
+
+<div class="main">
+  <div class="search-row">
+    <input type="search" id="searchInput" placeholder="搜尋..." oninput="onSearch(this.value)" />
+    <div class="filter-tabs">
+      <button class="ft active" onclick="setFilter('all',this)">全部</button>
+      <button class="ft" onclick="setFilter('allow',this)">允許</button>
+      <button class="ft" onclick="setFilter('deny',this)">禁止</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="stat-n t" id="s-total">—</span><span class="stat-l">總計</span></div>
+    <div class="stat"><span class="stat-n g" id="s-allow">—</span><span class="stat-l">✓ 允許</span></div>
+    <div class="stat"><span class="stat-n r" id="s-deny">—</span><span class="stat-l">✗ 禁止</span></div>
+  </div>
+
+  <div id="container"></div>
+  <div id="no-result">沒有符合的項目</div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+
+const DATA = {
+
+  chat: {
+    css: {
+      note: "聊天室使用 DOMPurify，對 style 屬性的過濾僅排除 javascript: 與 expression() 等注入手法，並未透過 FilterCSS 逐屬性審查。以下為 FilterCSS 預設白名單供參考，但聊天室實際限制比這更寬鬆。",
+      sections: {
+        "Background / 背景": { allow: ["background","background-attachment","background-clip","background-color","background-image","background-origin","background-position","background-repeat","background-size"] },
+        "Border / 邊框": { allow: ["border","border-bottom","border-bottom-color","border-bottom-left-radius","border-bottom-right-radius","border-bottom-style","border-bottom-width","border-collapse","border-color","border-image","border-image-outset","border-image-repeat","border-image-slice","border-image-source","border-image-width","border-left","border-left-color","border-left-style","border-left-width","border-radius","border-right","border-right-color","border-right-style","border-right-width","border-spacing","border-style","border-top","border-top-color","border-top-left-radius","border-top-right-radius","border-top-style","border-top-width","border-width"] },
+        "Box / 盒模型": { allow: ["box-decoration-break","box-shadow","box-sizing","box-snap","box-suppress","break-after","break-before","break-inside","clear","display","display-inside","display-list","display-outside","height","max-height","max-width","min-height","min-width","width","padding","padding-bottom","padding-left","padding-right","padding-top","margin","margin-bottom","margin-left","margin-right","margin-top"], deny: ["bottom","left","right","top","position","overflow","overflow-wrap","overflow-x","overflow-y","clip","clip-path","clip-rule","visibility","z-index","float","float-offset","resize"] },
+        "Color / 顏色": { allow: ["color","color-interpolation-filters","lighting-color"], deny: ["opacity","flood-color","flood-opacity"] },
+        "Font / 字型": { allow: ["font","font-family","font-feature-settings","font-kerning","font-language-override","font-size","font-size-adjust","font-stretch","font-style","font-synthesis","font-variant","font-variant-alternates","font-variant-caps","font-variant-east-asian","font-variant-ligatures","font-variant-numeric","font-variant-position","font-weight"], deny: ["hyphens","line-height","direction","unicode-bidi"] },
+        "Text / 文字": { allow: ["letter-spacing","list-style","list-style-image","list-style-position","list-style-type","text-align","text-align-last","text-combine-upright","text-decoration","text-decoration-color","text-decoration-line","text-decoration-skip","text-decoration-style","text-emphasis","text-emphasis-color","text-emphasis-position","text-emphasis-style","text-height","text-indent","text-justify","text-orientation","text-overflow","text-shadow","text-space-collapse","text-transform","text-underline-position","text-wrap","word-break","word-spacing","word-wrap"], deny: ["line-break","line-box-contain","line-grid","line-snap","line-stacking","line-stacking-ruby","line-stacking-shift","line-stacking-strategy","tab-size","table-layout","white-space"] },
+        "Flexbox": { deny: ["flex","flex-basis","flex-direction","flex-flow","flex-grow","flex-shrink","flex-wrap","justify-content","justify-items","justify-self","align-content","align-items","align-self","order"] },
+        "Grid": { deny: ["grid","grid-area","grid-auto-columns","grid-auto-flow","grid-auto-rows","grid-column","grid-column-end","grid-column-start","grid-row","grid-row-end","grid-row-start","grid-template","grid-template-areas","grid-template-columns","grid-template-rows"] },
+        "Animation / 動畫": { deny: ["all","animation","animation-delay","animation-direction","animation-duration","animation-fill-mode","animation-iteration-count","animation-name","animation-play-state","animation-timing-function","transition","transition-delay","transition-duration","transition-property","transition-timing-function","transform","transform-origin","transform-style","backface-visibility","perspective","perspective-origin"] },
+        "Mask / 遮罩": { deny: ["mask","mask-box","mask-box-outset","mask-box-repeat","mask-box-slice","mask-box-source","mask-box-width","mask-clip","mask-image","mask-origin","mask-position","mask-repeat","mask-size","mask-source-type","mask-type"] },
+        "Outline / 外框": { deny: ["outline","outline-color","outline-offset","outline-style","outline-width"] },
+        "Column / 欄位": { deny: ["column-count","column-fill","column-gap","column-rule","column-rule-color","column-rule-style","column-rule-width","column-span","column-width","columns"] },
+        "Page / 分頁": { deny: ["page","page-break-after","page-break-before","page-break-inside","page-policy","orphans","widows","marks"] },
+        "Shape / 形狀": { deny: ["shape-image-threshold","shape-outside","shape-margin"] },
+        "Voice / 語音": { deny: ["azimuth","cue","cue-after","cue-before","elevation","pause","pause-after","pause-before","pitch","pitch-range","play-during","richness","speak","speak-as","speak-header","speak-numeral","speak-punctuation","speech-rate","stress","voice-balance","voice-duration","voice-family","voice-pitch","voice-range","voice-rate","voice-stress","voice-volume","volume"] },
+        "Ruby / 注音": { deny: ["ruby-align","ruby-merge","ruby-position"] },
+        "Navigation / 導覽": { deny: ["nav-down","nav-index","nav-left","nav-right","nav-up"] },
+        "Other / 其他": { deny: ["alignment-adjust","alignment-baseline","anchor-point","baseline-shift","binding","bleed","bookmark-label","bookmark-level","bookmark-state","caption-side","chains","contain","content","counter-increment","counter-reset","counter-set","crop","cursor","dominant-baseline","empty-cells","filter","hanging-punctuation","icon","image-orientation","image-resolution","ime-mode","initial-letters","inline-box-align","marker-offset","marker-side","max-lines","move-to","object-fit","object-position","presentation-level","quotes","region-fragment","rest","rest-after","rest-before","rotation","rotation-point","size","string-set","vertical-align","will-change","wrap-flow","wrap-through","writing-mode"] },
+      }
+    },
+    html: {
+      note: "聊天室使用 DOMPurify (模組 82931)，允許大量 HTML 標籤，包含互動元素（details/summary、button、input 等）與多媒體（audio autoplay、video）。",
+      sections: {
+        "互動 / 表單標籤（聊天室獨有）": { allow: ["button","canvas","datalist","details","dialog","fieldset","form","input","label","legend","meter","optgroup","option","output","progress","select","shadow","slot","summary","template","textarea"] },
+        "多媒體標籤": { allow: ["audio","picture","source","track","video"] },
+        "標準排版標籤": { allow: ["a","abbr","acronym","address","area","article","aside","b","bdi","bdo","big","blink","blockquote","body","br","caption","center","cite","code","col","colgroup","content","data","dd","decorator","del","dfn","dir","div","dl","dt","element","em","figcaption","figure","font","footer","h1","h2","h3","h4","h5","h6","head","header","hgroup","hr","html","i","img","ins","kbd","li","main","map","mark","marquee","menu","menuitem","nav","nobr","ol","p","pre","q","rp","rt","ruby","s","samp","search","section","small","spacer","span","strike","strong","style","sub","sup","table","tbody","td","tfoot","th","thead","time","tr","tt","u","ul","var","wbr"] },
+        "禁止輸出內容的標籤": { deny: ["annotation-xml","colgroup","desc","foreignobject","head","iframe","math","mi","mn","mo","ms","mtext","noembed","noframes","noscript","plaintext","script","style","template","thead","title","xmp"] },
+      }
+    },
+    svg: {
+      note: "聊天室 DOMPurify 支援 HTML 屬性、SVG 屬性，並在開啟 svgFilters 後允許更多 filter 元素與屬性。",
+      sections: {
+        "HTML 允許屬性": { allow: ["accept","action","align","alt","autocapitalize","autocomplete","autopictureinpicture","autoplay","background","bgcolor","border","capture","cellpadding","cellspacing","checked","cite","class","clear","color","cols","colspan","controls","controlslist","coords","crossorigin","datetime","decoding","default","dir","disabled","disablepictureinpicture","disableremoteplayback","download","draggable","enctype","enterkeyhint","exportparts","face","for","headers","height","hidden","high","href","hreflang","id","inert","inputmode","integrity","ismap","kind","label","lang","list","loading","loop","low","max","maxlength","media","method","min","minlength","multiple","muted","name","nonce","noshade","novalidate","nowrap","open","optimum","part","pattern","placeholder","playsinline","popover","popovertarget","popovertargetaction","poster","preload","pubdate","radiogroup","readonly","rel","required","rev","reversed","role","rows","rowspan","spellcheck","scope","selected","shape","size","sizes","slot","span","srclang","start","src","srcset","step","style","summary","tabindex","title","translate","type","usemap","valign","value","width","wrap","xmlns"] },
+        "SVG 核心允許標籤": { allow: ["svg","a","altglyph","altglyphdef","altglyphitem","animatecolor","animatemotion","animatetransform","circle","clippath","defs","desc","ellipse","enterkeyhint","exportparts","filter","font","g","glyph","glyphref","hkern","image","inputmode","line","lineargradient","marker","mask","metadata","mpath","part","path","pattern","polygon","polyline","radialgradient","rect","stop","style","switch","symbol","text","textpath","title","tref","tspan","view","vkern"] },
+        "SVG Filter 元素（svgFilters 開啟後）": { blue: ["feBlend","feColorMatrix","feComponentTransfer","feComposite","feConvolveMatrix","feDiffuseLighting","feDisplacementMap","feDistantLight","feDropShadow","feFlood","feFuncA","feFuncB","feFuncG","feFuncR","feGaussianBlur","feImage","feMerge","feMergeNode","feMorphology","feOffset","fePointLight","feSpecularLighting","feSpotLight","feTile","feTurbulence"] },
+        "SVG 禁止標籤": { deny: ["animate","color-profile","cursor","discard","font-face","font-face-format","font-face-name","font-face-src","font-face-uri","foreignobject","hatch","hatchpath","mesh","meshgradient","meshpatch","meshrow","missing-glyph","script","set","solidcolor","unknown","use"] },
+        "SVG 允許屬性": { allow: ["accent-height","accumulate","additive","alignment-baseline","amplitude","ascent","attributename","attributetype","azimuth","basefrequency","baseline-shift","begin","bias","by","class","clip","clippathunits","clip-path","clip-rule","color","color-interpolation","color-interpolation-filters","color-profile","color-rendering","cx","cy","d","dx","dy","diffuseconstant","direction","display","divisor","dur","edgemode","elevation","end","exponent","fill","fill-opacity","fill-rule","filter","filterunits","flood-color","flood-opacity","font-family","font-size","font-size-adjust","font-stretch","font-style","font-variant","font-weight","fx","fy","g1","g2","glyph-name","glyphref","gradientunits","gradienttransform","height","href","id","image-rendering","in","in2","intercept","k","k1","k2","k3","k4","kerning","keypoints","keysplines","keytimes","lang","lengthadjust","letter-spacing","kernelmatrix","kernelunitlength","lighting-color","local","marker-end","marker-mid","marker-start","markerheight","markerunits","markerwidth","maskcontentunits","maskunits","max","mask","mask-type","media","method","mode","min","name","numoctaves","offset","operator","opacity","order","orient","orientation","origin","overflow","paint-order","path","pathlength","patterncontentunits","patterntransform","patternunits","points","preservealpha","preserveaspectratio","primitiveunits","r","rx","ry","radius","refx","refy","repeatcount","repeatdur","restart","result","rotate","scale","seed","shape-rendering","slope","specularconstant","specularexponent","spreadmethod","startoffset","stddeviation","stitchtiles","stop-color","stop-opacity","stroke-dasharray","stroke-dashoffset","stroke-linecap","stroke-linejoin","stroke-miterlimit","stroke-opacity","stroke","stroke-width","style","surfacescale","systemlanguage","tabindex","tablevalues","targetx","targety","transform","transform-origin","text-anchor","text-decoration","text-rendering","textlength","type","u1","u2","unicode","values","viewbox","visibility","version","vert-adv-y","vert-origin-x","vert-origin-y","width","word-spacing","wrap","writing-mode","xchannelselector","ychannelselector","x","x1","x2","xmlns","y","y1","y2","z","zoomandpan"] },
+        "XML / XLink 允許屬性": { allow: ["xlink:href","xml:id","xlink:title","xml:space","xmlns:xlink"] },
+      }
+    },
+    math: {
+      note: "聊天室支援 MathML（mathMl 模式）。",
+      sections: {
+        "MathML 允許標籤": { allow: ["math","menclose","merror","mfenced","mfrac","mglyph","mi","mlabeledtr","mmultiscripts","mn","mo","mover","mpadded","mphantom","mroot","mrow","ms","mspace","msqrt","mstyle","msub","msup","msubsup","mtable","mtd","mtext","mtr","munder","munderover","mprescripts"] },
+        "MathML 不建議標籤": { deny: ["maction","maligngroup","malignmark","mlongdiv","mscarries","mscarry","msgroup","mstack","msline","msrow","semantics","annotation","annotation-xml","none"] },
+        "MathML 允許屬性": { allow: ["accent","accentunder","align","bevelled","close","columnsalign","columnlines","columnspan","denomalign","depth","dir","display","displaystyle","encoding","fence","frame","height","href","id","largeop","length","linethickness","lspace","lquote","mathbackground","mathcolor","mathsize","mathvariant","maxsize","minsize","movablelimits","notation","numalign","open","rowalign","rowlines","rowspacing","rowspan","rspace","rquote","scriptlevel","scriptminsize","scriptsizemultiplier","selection","separator","separators","stretchy","subscriptshift","supscriptshift","symmetric","voffset","width","xmlns"] },
+      }
+    }
+  },
+
+  creator: {
+    css: {
+      note: "角色/創作者主頁使用 jsxss + FilterCSS（模組 59528/12639），透過 FilterCSS 逐一審查 inline CSS 屬性。position / z-index / transform 等破壞版面的屬性一律禁止。",
+      sections: {
+        "Background / 背景": { allow: ["background","background-attachment","background-clip","background-color","background-image","background-origin","background-position","background-repeat","background-size"] },
+        "Border / 邊框": { allow: ["border","border-bottom","border-bottom-color","border-bottom-left-radius","border-bottom-right-radius","border-bottom-style","border-bottom-width","border-collapse","border-color","border-image","border-image-outset","border-image-repeat","border-image-slice","border-image-source","border-image-width","border-left","border-left-color","border-left-style","border-left-width","border-radius","border-right","border-right-color","border-right-style","border-right-width","border-spacing","border-style","border-top","border-top-color","border-top-left-radius","border-top-right-radius","border-top-style","border-top-width","border-width"] },
+        "Box / 盒模型": { allow: ["box-decoration-break","box-shadow","box-sizing","box-snap","box-suppress","break-after","break-before","break-inside","clear","display","display-inside","display-list","display-outside","height","max-height","max-width","min-height","min-width","width","padding","padding-bottom","padding-left","padding-right","padding-top","margin","margin-bottom","margin-left","margin-right","margin-top"], deny: ["bottom","left","right","top","position","overflow","overflow-wrap","overflow-x","overflow-y","clip","clip-path","clip-rule","visibility","z-index","float","float-offset","resize"] },
+        "Color / 顏色": { allow: ["color","color-interpolation-filters","lighting-color"], deny: ["opacity","flood-color","flood-opacity"] },
+        "Font / 字型": { allow: ["font","font-family","font-feature-settings","font-kerning","font-language-override","font-size","font-size-adjust","font-stretch","font-style","font-synthesis","font-variant","font-variant-alternates","font-variant-caps","font-variant-east-asian","font-variant-ligatures","font-variant-numeric","font-variant-position","font-weight"], deny: ["hyphens","line-height","direction","unicode-bidi"] },
+        "Text / 文字": { allow: ["letter-spacing","list-style","list-style-image","list-style-position","list-style-type","text-align","text-align-last","text-combine-upright","text-decoration","text-decoration-color","text-decoration-line","text-decoration-skip","text-decoration-style","text-emphasis","text-emphasis-color","text-emphasis-position","text-emphasis-style","text-height","text-indent","text-justify","text-orientation","text-overflow","text-shadow","text-space-collapse","text-transform","text-underline-position","text-wrap","word-break","word-spacing","word-wrap"], deny: ["line-break","line-box-contain","line-grid","line-snap","line-stacking","line-stacking-ruby","line-stacking-shift","line-stacking-strategy","tab-size","table-layout","white-space"] },
+        "Flexbox（全部禁止）": { deny: ["flex","flex-basis","flex-direction","flex-flow","flex-grow","flex-shrink","flex-wrap","justify-content","justify-items","justify-self","align-content","align-items","align-self","order"] },
+        "Grid（全部禁止）": { deny: ["grid","grid-area","grid-auto-columns","grid-auto-flow","grid-auto-rows","grid-column","grid-column-end","grid-column-start","grid-row","grid-row-end","grid-row-start","grid-template","grid-template-areas","grid-template-columns","grid-template-rows"] },
+        "Animation / 動畫（全部禁止）": { deny: ["all","animation","animation-delay","animation-direction","animation-duration","animation-fill-mode","animation-iteration-count","animation-name","animation-play-state","animation-timing-function","transition","transition-delay","transition-duration","transition-property","transition-timing-function","transform","transform-origin","transform-style","backface-visibility","perspective","perspective-origin"] },
+        "Mask / 遮罩（全部禁止）": { deny: ["mask","mask-box","mask-box-outset","mask-box-repeat","mask-box-slice","mask-box-source","mask-box-width","mask-clip","mask-image","mask-origin","mask-position","mask-repeat","mask-size","mask-source-type","mask-type"] },
+        "Outline / 外框（全部禁止）": { deny: ["outline","outline-color","outline-offset","outline-style","outline-width"] },
+        "Column / 欄位（全部禁止）": { deny: ["column-count","column-fill","column-gap","column-rule","column-rule-color","column-rule-style","column-rule-width","column-span","column-width","columns"] },
+        "Page / 分頁（全部禁止）": { deny: ["page","page-break-after","page-break-before","page-break-inside","page-policy","orphans","widows","marks"] },
+        "Shape（全部禁止）": { deny: ["shape-image-threshold","shape-outside","shape-margin"] },
+        "Voice（全部禁止）": { deny: ["azimuth","cue","cue-after","cue-before","elevation","pause","pause-after","pause-before","pitch","pitch-range","play-during","richness","speak","speak-as","speak-header","speak-numeral","speak-punctuation","speech-rate","stress","voice-balance","voice-duration","voice-family","voice-pitch","voice-range","voice-rate","voice-stress","voice-volume","volume"] },
+        "Ruby / 注音（全部禁止）": { deny: ["ruby-align","ruby-merge","ruby-position"] },
+        "Navigation（全部禁止）": { deny: ["nav-down","nav-index","nav-left","nav-right","nav-up"] },
+        "Other / 其他（全部禁止）": { deny: ["alignment-adjust","alignment-baseline","anchor-point","baseline-shift","binding","bleed","bookmark-label","bookmark-level","bookmark-state","caption-side","chains","contain","content","counter-increment","counter-reset","counter-set","crop","cursor","dominant-baseline","empty-cells","filter","hanging-punctuation","icon","image-orientation","image-resolution","ime-mode","initial-letters","inline-box-align","marker-offset","marker-side","max-lines","move-to","object-fit","object-position","presentation-level","quotes","region-fragment","rest","rest-after","rest-before","rotation","rotation-point","size","string-set","vertical-align","will-change","wrap-flow","wrap-through","writing-mode"] },
+      }
+    },
+    html: {
+      note: "角色/創作者主頁使用 jsxss（模組 59528），以嚴格白名單控制標籤與屬性。互動元素（details、button、input、form 等）、動態標籤（marquee）皆不在白名單中，會被直接拔除或轉為純文字。每個標籤後方的灰色文字為允許的屬性（可 hover 查看）。",
+      sections: {
+        "允許標籤（含可用屬性）": {
+          allowWithAttrs: {
+            "a": ["target","href","title"],
+            "abbr": ["title"],
+            "address": [],
+            "area": ["shape","coords","href","alt"],
+            "article": [],
+            "aside": [],
+            "audio": ["autoplay","controls","crossorigin","loop","muted","preload","src"],
+            "b": [],
+            "bdi": ["dir"],
+            "bdo": ["dir"],
+            "big": [],
+            "blockquote": ["cite"],
+            "br": [],
+            "caption": [],
+            "center": [],
+            "cite": [],
+            "code": [],
+            "col": ["align","valign","span","width"],
+            "colgroup": ["align","valign","span","width"],
+            "dd": [],
+            "del": ["datetime"],
+            "details": ["open"],
+            "div": [],
+            "dl": [],
+            "dt": [],
+            "em": [],
+            "figcaption": [],
+            "figure": [],
+            "font": ["color","size","face"],
+            "footer": [],
+            "h1": [],"h2": [],"h3": [],"h4": [],"h5": [],"h6": [],
+            "header": [],
+            "hr": [],
+            "i": [],
+            "img": ["src","alt","title","width","height","loading"],
+            "ins": ["datetime"],
+            "kbd": [],
+            "li": [],
+            "mark": [],
+            "nav": [],
+            "ol": [],
+            "p": [],
+            "pre": [],
+            "s": [],
+            "section": [],
+            "small": [],
+            "span": [],
+            "sub": [],
+            "summary": [],
+            "sup": [],
+            "strong": [],
+            "strike": [],
+            "table": ["width","border","align","valign"],
+            "tbody": ["align","valign"],
+            "td": ["width","rowspan","colspan","align","valign"],
+            "tfoot": ["align","valign"],
+            "th": ["width","rowspan","colspan","align","valign"],
+            "thead": ["align","valign"],
+            "tr": ["rowspan","align","valign"],
+            "tt": [],
+            "u": [],
+            "ul": [],
+            "video": ["autoplay","controls","crossorigin","loop","muted","playsinline","poster","preload","src","height","width"]
+          }
+        },
+        "禁止 / 不在白名單的標籤（直接拔除）": {
+          deny: ["button","canvas","datalist","dialog","details","fieldset","form","input","label","legend","marquee","menuitem","meter","optgroup","option","output","picture","progress","select","shadow","slot","template","textarea","blink","spacer","body","head","html","script","iframe","noscript","style","object","embed","frame","frameset"]
+        }
+      }
+    },
+    svg: {
+      note: "角色/創作者主頁的 jsxss 不支援 SVG / MathML，所有 SVG 標籤與屬性均會被過濾拔除，僅保留上方 HTML 白名單內的標籤。",
+      sections: {
+        "SVG 標籤（全部禁止）": { deny: ["svg","circle","rect","path","polygon","polyline","ellipse","line","g","defs","use","symbol","clippath","mask","filter","image","text","tspan","textpath","animate","animatecolor","animatemotion","animatetransform","lineargradient","radialgradient","stop","pattern","marker","metadata","title","desc","switch","view"] },
+        "SVG Filter 元素（全部禁止）": { deny: ["feBlend","feColorMatrix","feComponentTransfer","feComposite","feConvolveMatrix","feDiffuseLighting","feDisplacementMap","feDistantLight","feDropShadow","feFlood","feFuncA","feFuncB","feFuncG","feFuncR","feGaussianBlur","feImage","feMerge","feMergeNode","feMorphology","feOffset","fePointLight","feSpecularLighting","feSpotLight","feTile","feTurbulence"] },
+      }
+    },
+    math: {
+      note: "角色/創作者主頁的 jsxss 不支援 MathML，所有 MathML 標籤均會被過濾拔除。",
+      sections: {
+        "MathML 標籤（全部禁止）": { deny: ["math","mi","mn","mo","ms","mtext","mfrac","msqrt","mroot","mrow","msub","msup","msubsup","munder","mover","munderover","mtable","mtr","mtd","mfenced","merror","mpadded","mphantom","mstyle","menclose"] },
+      }
+    }
+  }
+};
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let iface = 'chat', content = 'css', filter = 'all', query = '';
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function render() {
+  const c = document.getElementById('container');
+  const nr = document.getElementById('no-result');
+  c.innerHTML = '';
+
+  const src = DATA[iface][content];
+  document.getElementById('attr-note') && (document.getElementById('attr-note').remove());
+
+  // note box
+  if (src.note) {
+    const nb = document.createElement('div');
+    nb.className = 'note'; nb.id = 'attr-note'; nb.textContent = src.note;
+    c.appendChild(nb);
+  }
+
+  // blue legend visibility
+  const hasBlue = Object.values(src.sections).some(s => s.blue && s.blue.length);
+  document.getElementById('blue-legend').style.display = hasBlue ? 'inline-flex' : 'none';
+  const hasAttrHover = Object.values(src.sections).some(s => s.allowWithAttrs);
+  document.getElementById('attr-legend').style.display = hasAttrHover ? 'inline' : 'none';
+
+  let allowCount = 0, denyCount = 0, blueCount = 0, shown = 0;
+
+  Object.entries(src.sections).forEach(([cat, lists]) => {
+    // collect items
+    let allowItems = [], denyItems = [], blueItems = [], attrItems = [];
+
+    if (lists.allow)  allowItems = lists.allow.filter(p => !query || p.includes(query));
+    if (lists.deny)   denyItems  = lists.deny.filter(p => !query || p.includes(query));
+    if (lists.blue)   blueItems  = lists.blue.filter(p => !query || p.includes(query));
+    if (lists.allowWithAttrs) {
+      Object.entries(lists.allowWithAttrs).forEach(([tag, attrs]) => {
+        if (!query || tag.includes(query) || attrs.some(a => a.includes(query))) {
+          attrItems.push({ tag, attrs });
+        }
+      });
+      allowItems = []; // attrs items replace allow
+    }
+
+    const showA  = filter !== 'deny'  && (allowItems.length > 0 || attrItems.length > 0 || blueItems.length > 0);
+    const showD  = filter !== 'allow' && denyItems.length > 0;
+    if (!showA && !showD) return;
+    shown++;
+
+    allowCount += allowItems.length + attrItems.length;
+    denyCount  += denyItems.length;
+    blueCount  += blueItems.length;
+
+    const sec = document.createElement('div'); sec.className = 'section';
+    const title = document.createElement('div'); title.className = 'section-title'; title.textContent = cat;
+    const grid = document.createElement('div'); grid.className = 'tag-grid';
+    sec.appendChild(title); sec.appendChild(grid); c.appendChild(sec);
+
+    if (showA) {
+      allowItems.forEach(p => { const t = document.createElement('span'); t.className='tag g'; t.textContent=p; grid.appendChild(t); });
+      blueItems.forEach(p  => { const t = document.createElement('span'); t.className='tag b'; t.textContent=p; grid.appendChild(t); });
+      attrItems.forEach(({ tag, attrs }) => {
+        const t = document.createElement('span');
+        t.className = attrs.length ? 'tag g has-attrs' : 'tag g';
+        t.textContent = tag;
+        if (attrs.length) t.setAttribute('data-attrs', '屬性: ' + attrs.join(', '));
+        grid.appendChild(t);
+      });
+    }
+    if (showD) {
+      denyItems.forEach(p => { const t = document.createElement('span'); t.className='tag r'; t.textContent=p; grid.appendChild(t); });
+    }
+  });
+
+  nr.style.display = shown === 0 ? 'block' : 'none';
+  const total = allowCount + denyCount + blueCount;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-allow').textContent = blueCount ? allowCount + '+' + blueCount : allowCount;
+  document.getElementById('s-deny').textContent  = denyCount;
+}
+
+// ─────────────────────────────────────────────
+// EVENT HANDLERS
+// ─────────────────────────────────────────────
+function setIface(v, el) {
+  iface = v;
+  document.querySelectorAll('.if-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+function setContent(v, el) {
+  content = v;
+  document.querySelectorAll('.ct').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+function setFilter(v, el) {
+  filter = v;
+  document.querySelectorAll('.ft').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+function onSearch(v) {
+  query = v.toLowerCase();
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
